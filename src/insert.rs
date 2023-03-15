@@ -147,6 +147,27 @@ impl<T> Insert<T> {
         self.end_timeout = end_timeout;
     }
 
+    /// Writes provided raw buffer to the socket.
+    ///
+    /// The buffer is expected to contain row(s) which have been serialized to [RowBinary][rb].
+    ///
+    /// # Panics
+    /// If called after previous call returned an error.
+    ///
+    /// [rb]: https://clickhouse.com/docs/en/interfaces/formats/#rowbinary
+    pub fn write_raw<'a>(&'a mut self, buf: &[u8]) -> impl Future<Output = Result<()>> + 'a + Send {
+        assert!(self.sender.is_some(), "write_raw() after error");
+
+        self.buffer.extend_from_slice(buf);
+
+        async move {
+            if self.buffer.len() >= MIN_CHUNK_SIZE {
+                self.send_chunk().await?;
+            }
+            Ok(())
+        }
+    }
+
     /// Serializes and writes to the socket a provided row.
     ///
     /// # Panics
