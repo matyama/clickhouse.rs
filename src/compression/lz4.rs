@@ -174,7 +174,7 @@ fn decompress(compressed: &[u8], uncompressed: &mut [u8]) -> Result<()> {
 }
 
 pub(crate) fn compress(uncompressed: &[u8], mode: Compression) -> Result<Bytes> {
-    do_compress(uncompressed, mode).map_err(|err| Error::Decompression(err.into()))
+    do_compress(uncompressed, mode).map_err(|err| Error::Compression(err.into()))
 }
 
 fn do_compress(uncompressed: &[u8], mode: Compression) -> std::io::Result<Bytes> {
